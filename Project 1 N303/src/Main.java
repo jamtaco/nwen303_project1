@@ -11,7 +11,7 @@ public class Main {
 		ExecutorService clients = Executors.newFixedThreadPool(5);
 		ExecutorService providers = Executors.newFixedThreadPool(5);
 		for(int i = 0; i < 100; i++){
-			Runnable work = new WorkerC("Thread : " + i);
+			Runnable work = new Client("Thread : " + i);
 			if(i%2==0){
 				providers.execute(work);
 			}

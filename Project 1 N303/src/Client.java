@@ -1,9 +1,9 @@
 
-public class WorkerC implements Runnable{
+public class Client implements Runnable{
 	
 	private String name;
 
-	public WorkerC(String s){
+	public Client(String s){
 		this.name = s;
 	}
 	
