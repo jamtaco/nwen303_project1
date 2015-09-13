@@ -7,6 +7,8 @@ public class Client implements Runnable {
 	private Service service;
 	private boolean satisfied = false;
 	private boolean first = true;
+	private int timeout = 0;
+	private int created = 0;
 
 	public Client(int id, ArrayList<Service> board, Service service) {
 		this.id = id;
@@ -16,37 +18,56 @@ public class Client implements Runnable {
 
 	@Override
 	public void run() {
-		service = new Service(Services.Build, service.id);
+		//service = new Service(Services.Build, service.id);
 
 		// System.out.println(Thread.currentThread().getName() +
 		// "Starting Client Thread: " + name);
 		System.out.println("Starting Client Thread: " + id);
 
-		while (!satisfied) {
+		while (created < 10) {
 			post();
+			satisfied = false;
+			first = true;
+			service = new Service(Services.getRandomService(),board.size()); 
+			created++;
+			try{
+				Thread.sleep(1000);
+			}catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
 		// System.out.println(Thread.currentThread().getName() + " End.");
-		System.out.println("Ending Client Thread: " + id);
+		//System.out.println("Ending Client Thread: " + id);
 
 	}
 
 	private void post() {
-		int place = checkBoard();
-		System.out.println("Client Thread: " + id + " Checking For: " + service.type
-				+ " Returning: " + place);
-		if (place >= 0) {
-			remove(place);
-		}else if(first){
-			service.setClient();
-			service.setClientID(id);
-			board.add(service);
-			first = false;
+		while(!satisfied){
+				if(first){
+					first = false;
+					int place = checkBoard();
+					System.out.println("Client Thread: " + id + " Checking For: " + service.type + " : " + service.id + " Returning: " + place);
+					if (place >= 0) {
+						remove(place);
+					}else{
+						service.setClient();
+						service.setClientID(id);
+						board.add(service);
+						System.out.println("Client Thread: " + id + " Added: " + service.type);
+					}
+			}else if(service.getClientID() == this.id && service.getProviderID() < 0){
+				try {
+					System.out.println("CLient Thread: " + id + " Waiting For Provider...");
+					Thread.sleep(500);
+					timeout++;
+					if(timeout > 5)satisfied = true;
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}else{
+				satisfied = true;
+			}
 		}
-		// try {
-		// Thread.sleep(5000);
-		// } catch (InterruptedException e) {
-		// e.printStackTrace();
-		// }
 
 	}
 
@@ -54,9 +75,12 @@ public class Client implements Runnable {
 		if (board.get(place).type == this.service.type && board.get(place).hasClient == false) {
 			//board.remove(place);
 			board.get(place).setClient();
+			board.get(place).setClientID(id);
 			satisfied = true;
+			System.out.println("CLient Thread: " + id + " Was Set As Client For: " + board.get(place).id);
 		}else{
 			System.out.println("Client Thread:" + id + " Was Too Slow");
+			first = false;
 		}
 	}
 

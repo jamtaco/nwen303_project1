@@ -7,4 +7,6 @@ import java.util.Random;
 			Random random = new Random();
 			return values()[random.nextInt(values().length)];
 		}
+		
+		
 	}
